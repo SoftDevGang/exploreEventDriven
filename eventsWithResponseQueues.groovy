@@ -2,18 +2,14 @@
 
 class Event{
     def name
-
-    def text
-    def origin
-
     List<Closure> listeners
 
-    void fire(origin, args){
+    void fire(replyTo, args){
         listeners.collect{
             def theArgs = args*.value
             def finalArgs = (theArgs.size() == 1) ? theArgs[0]: theArgs
             def result = it.call(finalArgs)
-            origin.pushResponse(name, result)
+            replyTo.pushResponse(name, result)
         }
     }
 }
@@ -21,8 +17,8 @@ class Event{
 class EventDispatcher{
     List<Event> events
 
-    void fire(origin, eventName, args){
-        events.findAll{it.name == eventName}.each{it.fire(origin, args)}
+    void fire(replyTo, eventName, args){
+        events.findAll{it.name == eventName}.each{it.fire(replyTo, args)}
     }
 }
 
