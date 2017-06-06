@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 class EventDispatcher{
-    def eventListeners 
+    Map<String, Closure> eventListeners 
 
     void fire(eventName, args){
         eventListeners[eventName](args*.value)
