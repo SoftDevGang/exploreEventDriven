@@ -1,25 +1,10 @@
 #!/usr/bin/env groovy
 
-class Event{
-    def name
-    def replyName
-    List<Closure> listeners
-
-    void fire(eventDispatcher, args){
-        listeners.collect{
-            def theArgs = args*.value
-            def finalArgs = (theArgs.size() == 1) ? theArgs[0]: theArgs
-            def result = it.call(finalArgs)
-            eventDispatcher.fire(replyName, [text: result])
-        }
-    }
-}
-
 class EventDispatcher{
-    List<Event> events
+    def eventListeners 
 
     void fire(eventName, args){
-        events.findAll{it.name == eventName}.each{it.fire(this, args)}
+        eventListeners[eventName](args*.value)
     }
 }
 
@@ -29,7 +14,7 @@ class Speaker{
     def name
 
     void sayHello(){
-        eventDispatcher.fire("capitalizeString", [text: "hello"])
+        eventDispatcher.fire("capitalizeString", [speaker: this, text: "hello"])
     }
 
     void capitalized(capitalizedText){
@@ -37,20 +22,13 @@ class Speaker{
     }
 }
 
-
 def eventDispatcher = new EventDispatcher(
-    events: [
-        new Event(name: "talk", listeners: [{
-            name, text -> println "$name says $text"
-        }]),
-        new Event(name: "capitalizeString", replyName: "stringCapitalized", listeners:[{
-            text -> text.capitalize()
-        }])
+    eventListeners: [
+        capitalizeString: { speaker, text -> speaker.capitalized(text.capitalize()) },
+        talk: { name, text -> println "$name says $text"},
     ]
 )
 
-
 def speaker = new Speaker(name: "Alex", eventDispatcher: eventDispatcher)
-eventDispatcher.events.add(new Event(name: "stringCapitalized", listeners: [{text -> speaker.capitalized(text)}]))
 speaker.sayHello()
 // Should say "Alex says Hello"
